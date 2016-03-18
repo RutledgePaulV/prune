@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/RutledgePaulV/prune.svg?branch=master)](https://travis-ci.org/RutledgePaulV/prune)
-[![Coverage Status](https://coveralls.io/repos/RutledgePaulV/q-builders/badge.svg?branch=master&service=github)](https://coveralls.io/github/RutledgePaulV/prune?branch=master)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rutledgepaulv/q-builders/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rutledgepaulv/prune)
+[![Coverage Status](https://coveralls.io/repos/RutledgePaulV/prune/badge.svg?branch=master&service=github)](https://coveralls.io/github/RutledgePaulV/prune?branch=master)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rutledgepaulv/prune/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rutledgepaulv/prune)
 
 ### A zero-nonsense tree library for Java 8
 
