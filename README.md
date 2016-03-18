@@ -8,17 +8,17 @@
 ### Usage
 
 ```java
-Tree.Node<Integer> root = new Tree.Node<>(1);
+ Tree.Node<Integer> root = new Tree.Node<>(1);
 
 Tree.Node<Integer> child1 = new Tree.Node<>(2);
-Tree.Node<Integer> child2 = new Tree.Node<>(2);
+Tree.Node<Integer> child2 = new Tree.Node<>(6);
 Tree.Node<Integer> child3 = new Tree.Node<>(2);
 
 root.addChildrenNodes(child1, child2, child3);
 
-child1.addChildren(3, 3);
-child2.addChildren(4, 6);
-child3.addChildren(5, 5);
+child1.addChildren(5, 5);
+child2.addChildren(4, 4);
+child3.addChildren(3, 3);
 
 Tree<Integer> tree = root.asTree();
 

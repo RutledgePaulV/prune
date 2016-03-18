@@ -3,8 +3,7 @@ package com.github.rutledgepaulv.prune;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.*;
 
 /**
  * Simply wraps a node of a tree with some additional methods that act on the
@@ -183,19 +182,19 @@ public class Tree<T> {
 
 
     private Iterator<Node<T>> depthFirstIter() {
-        final Stack<Node<T>> stack = new Stack<>();
-        stack.push(root);
+        final List<Node<T>> queue = new LinkedList<>();
+        queue.add(root);
 
         return new Iterator<Node<T>>() {
             @Override
             public boolean hasNext() {
-                return !stack.isEmpty();
+                return !queue.isEmpty();
             }
 
             @Override
             public Node<T> next() {
-                Node<T> node = stack.pop();
-                node.getChildren().forEach(stack::push);
+                Node<T> node = queue.remove(0);
+                queue.addAll(0, node.getChildren());
                 return node;
             }
         };
