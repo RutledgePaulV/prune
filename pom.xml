@@ -15,4 +15,24 @@
     <version>1.0-SNAPSHOT</version>
 
 
+    <name>prune</name>
+    <url>https://github.com/rutledgepaulv/prune</url>
+    <description>A zero-nonsense tree library for Java 8.</description>
+
+
+    <scm>
+        <url>https://github.com/rutledgepaulv/prune</url>
+        <connection>scm:git:git@github.com:rutledgepaulv/prune.git</connection>
+    </scm>
+
+    <ciManagement>
+        <system>travis</system>
+        <url>https://travis-ci.org/rutledgepaulv/prune</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/rutledgepaulv/prune/issues</url>
+    </issueManagement>
+
 </project>
