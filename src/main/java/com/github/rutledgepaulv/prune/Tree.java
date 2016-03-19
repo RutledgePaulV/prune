@@ -269,9 +269,9 @@ public final class Tree<T> {
      */
     public static final class Node<T> {
 
-        private T data;
+        private final T data;
         private Node<T> parent;
-        private List<Node<T>> children = new LinkedList<>();
+        private final List<Node<T>> children = new LinkedList<>();
 
         public Node(T data) {
             this.data = data;
@@ -350,12 +350,13 @@ public final class Tree<T> {
             }
             Node<?> treeNode = (Node<?>) o;
             return Objects.equals(data, treeNode.data) &&
+                    Objects.equals(parent, treeNode.parent) &&
                     Objects.equals(children, treeNode.children);
         }
 
         @Override
         public final int hashCode() {
-            return Objects.hash(data, children);
+            return Objects.hash(data, parent, children);
         }
 
     }

@@ -449,4 +449,23 @@ public class TreeTest {
 
         assertEquals(expected.length, count[0]);
     }
+
+
+    @Test
+    public void checkEqualsAndHashCodes() {
+        Tree.Node<Integer> root = new Tree.Node<>(1);
+
+        Tree.Node<Integer> child1 = new Tree.Node<>(2);
+        Tree.Node<Integer> child2 = new Tree.Node<>(6);
+        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+
+        assertFalse(root.equals("test"));
+        assertFalse(root.asTree().equals("test"));
+
+        assertEquals(child1.hashCode(), child3.hashCode());
+        assertEquals(child1.asTree().hashCode(), child3.asTree().hashCode());
+
+        assertTrue(child1.equals(child1));
+        assertTrue(child1.asTree().equals(child1.asTree()));
+    }
 }
