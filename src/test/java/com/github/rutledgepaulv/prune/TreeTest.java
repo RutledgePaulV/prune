@@ -462,6 +462,10 @@ public class TreeTest {
         assertFalse(root.equals("test"));
         assertFalse(root.asTree().equals("test"));
 
+        Tree<Integer> tree = root.asTree();
+
+        assertTrue(tree.equals(tree));
+
         assertEquals(child1.hashCode(), child3.hashCode());
         assertEquals(child1.asTree().hashCode(), child3.asTree().hashCode());
 
