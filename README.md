@@ -7,7 +7,7 @@
 
 ### Usage
 ```java
- Tree.Node<Integer> root = new Tree.Node<>(1);
+Tree.Node<Integer> root = new Tree.Node<>(1);
 
 Tree.Node<Integer> child1 = new Tree.Node<>(2);
 Tree.Node<Integer> child2 = new Tree.Node<>(6);
@@ -21,8 +21,8 @@ child3.addChildren(3, 3);
 
 Tree<Integer> tree = root.asTree();
 
-Optional<Integer> firstIntegerGreaterThan4DepthFirst = tree.depthFirstSearchData(val -> val > 4);
-Optional<Integer> firstIntegerGreaterThan4BreadthFirst = tree.breadthFirstSearchData(val -> val > 4);
+Optional<Integer> firstIntegerGreaterThan4DepthFirst = tree.depthFirstSearch(val -> val > 4);
+Optional<Integer> firstIntegerGreaterThan4BreadthFirst = tree.breadthFirstSearch(val -> val > 4);
 
 assertTrue(firstIntegerGreaterThan4DepthFirst.isPresent());
 assertTrue(firstIntegerGreaterThan4BreadthFirst.isPresent());
