@@ -3,33 +3,26 @@ package com.github.rutledgepaulv.prune;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Simply wraps a node of a tree with some additional methods that act on the
  * tree created by the node in focus and that node's children.
  */
-public class Tree<T> {
+public final class Tree<T> {
 
-    private Node<T> root;
-
-    /**
-     * Constructs a new tree that is rooted at the provided node.
-     *
-     * @param root The root node.
-     */
-    Tree(T root) {
-        this(new Node<>(root));
-    }
+    private final Node<T> root;
 
     /**
      * Constructs a new tree that is rooted at the provided node.
      *
      * @param root The root node.
      */
-    Tree(Node<T> root) {
-        Objects.requireNonNull(root);
-        this.root = root;
+    private Tree(Node<T> root) {
+        this.root = requireNonNull(root);
     }
 
     /**
@@ -43,6 +36,30 @@ public class Tree<T> {
     }
 
     /**
+     * Used to trim off any nodes from the tree based on their data.
+     * If a node that has children is trimmed, then all of it's children
+     * are nixed as well.
+     *
+     * @param predicate The predicate to identify nodes that should be removed.
+     */
+    public final void pruneDescendants(Predicate<T> predicate) {
+        depthFirstStreamNodes().filter(node -> !node.equals(root) && predicate.test(node.getData()))
+                               .forEachOrdered(Node::prune);
+    }
+
+    /**
+     * Used to trim off any nodes from the tree. If a node that has
+     * children is trimmed, then all of it's children are nixed as
+     * well.
+     *
+     * @param predicate The predicate to identify nodes that should be removed.
+     */
+    public final void pruneDescendantsAsNodes(Predicate<Node<T>> predicate) {
+        depthFirstStreamNodes().filter(node -> !node.equals(root) && predicate.test(node))
+                               .forEachOrdered(Node::prune);
+    }
+
+    /**
      * Searches the data stored by each node and returns the first data object that matches, if any.
      * Performs a depth first search against the tree.
      *
@@ -50,35 +67,35 @@ public class Tree<T> {
      *
      * @return The first data object that satisfies the provided predicate. Empty optional if none matched.
      */
-    public final Optional<T> depthFirstSearchData(Predicate<T> predicate) {
-        return depthFirstDataStream().filter(predicate).findFirst();
-    }
-
-    /**
-     * Searches the data stored by each node and returns the first data object that matches, if any.
-     * Performs a breadth first search against the tree.
-     *
-     * @param predicate The predicate to test against each piece of data.
-     *
-     * @return The first data object that satisfies the provided predicate. Empty optional if none matched.
-     */
-    public final Optional<T> breadthFirstSearchData(Predicate<T> predicate) {
-        return breadthFirstDataStream().filter(predicate).findFirst();
-    }
-
-    /**
-     * Searches the tree nodes and returns the first node that matches, if any.
-     * Performs a depth first search against the tree.
-     *
-     * @param predicate The predicate to test against each node.
-     *
-     * @return The first node that satisfies the provided predicate. Empty optional if none matched.
-     */
-    public final Optional<Node<T>> depthFirstSearchNode(Predicate<Node<T>> predicate) {
+    public final Optional<T> depthFirstSearch(Predicate<T> predicate) {
         return depthFirstStream().filter(predicate).findFirst();
     }
 
     /**
+     * Searches the data stored by each node and returns the first data object that matches, if any.
+     * Performs a breadth first search against the tree.
+     *
+     * @param predicate The predicate to test against each piece of data.
+     *
+     * @return The first data object that satisfies the provided predicate. Empty optional if none matched.
+     */
+    public final Optional<T> breadthFirstSearch(Predicate<T> predicate) {
+        return breadthFirstStream().filter(predicate).findFirst();
+    }
+
+    /**
+     * Searches the tree nodes and returns the first node that matches, if any.
+     * Performs a depth first search against the tree.
+     *
+     * @param predicate The predicate to test against each node.
+     *
+     * @return The first node that satisfies the provided predicate. Empty optional if none matched.
+     */
+    public final Optional<Node<T>> depthFirstSearchNodes(Predicate<Node<T>> predicate) {
+        return depthFirstStreamNodes().filter(predicate).findFirst();
+    }
+
+    /**
      * Searches the tree nodes and returns the first node that matches, if any.
      * Performs a breadth first search against the tree.
      *
@@ -86,8 +103,8 @@ public class Tree<T> {
      *
      * @return The first node that satisfies the provided predicate. Empty optional if none matched.
      */
-    public final Optional<Node<T>> breadthFirstSearchNode(Predicate<Node<T>> predicate) {
-       return breadthFirstStream().filter(predicate).findFirst();
+    public final Optional<Node<T>> breadthFirstSearchNodes(Predicate<Node<T>> predicate) {
+       return breadthFirstStreamNodes().filter(predicate).findFirst();
     }
 
     /**
@@ -98,8 +115,8 @@ public class Tree<T> {
      *
      * @param visitor The visiting function.
      */
-    public final void visitDataDepthFirst(Function<T, Boolean> visitor) {
-        visitNodesDepthFirst(node -> visitor.apply(node.getData()));
+    public final void depthFirstVisit(Function<T, Boolean> visitor) {
+        depthFirstStreamNodes().map(Node::getData).allMatch(visitor::apply);
     }
 
     /**
@@ -110,8 +127,8 @@ public class Tree<T> {
      *
      * @param visitor The visiting function.
      */
-    public final void visitDataBreadthFirst(Function<T, Boolean> visitor) {
-        visitNodesBreadthFirst(node -> visitor.apply(node.getData()));
+    public final void breadthFirstVisit(Function<T, Boolean> visitor) {
+        breadthFirstStreamNodes().map(Node::getData).allMatch(visitor::apply);
     }
 
     /**
@@ -122,8 +139,9 @@ public class Tree<T> {
      *
      * @param visitor The visiting function.
      */
-    public final void visitNodesDepthFirst(Function<Node<T>, Boolean> visitor) {
-        depthFirstStream().allMatch(visitor::apply);
+    public final void depthFirstVisitNodes(Function<Node<T>, Boolean> visitor) {
+        // relying on short circuiting to abort execution when it returns false
+        depthFirstStreamNodes().allMatch(visitor::apply);
     }
 
     /**
@@ -134,8 +152,9 @@ public class Tree<T> {
      *
      * @param visitor The visiting function.
      */
-    public final void visitNodesBreadthFirst(Function<Node<T>, Boolean> visitor) {
-        breadthFirstStream().allMatch(visitor::apply);
+    public final void breadthFirstVisitNodes(Function<Node<T>, Boolean> visitor) {
+        // relying on short circuiting to abort execution when it returns false
+        breadthFirstStreamNodes().allMatch(visitor::apply);
     }
 
     /**
@@ -144,8 +163,8 @@ public class Tree<T> {
      *
      * @return The stream of nodes.
      */
-    public Stream<T> depthFirstDataStream() {
-        return stream(depthFirstIter()).map(Node::getData);
+    public final Stream<T> depthFirstStream() {
+        return depthFirstStreamNodes().map(Node::getData);
     }
 
     /**
@@ -154,8 +173,8 @@ public class Tree<T> {
      *
      * @return The stream of nodes.
      */
-    public Stream<T> breadthFirstDataStream() {
-        return stream(breadthFirstIter()).map(Node::getData);
+    public final Stream<T> breadthFirstStream() {
+        return breadthFirstStreamNodes().map(Node::getData);
     }
 
     /**
@@ -164,7 +183,7 @@ public class Tree<T> {
      *
      * @return The stream of nodes.
      */
-    public Stream<Node<T>> depthFirstStream() {
+    public final Stream<Node<T>> depthFirstStreamNodes() {
         return stream(depthFirstIter());
     }
 
@@ -174,7 +193,7 @@ public class Tree<T> {
      *
      * @return The stream of nodes.
      */
-    public Stream<Node<T>> breadthFirstStream() {
+    public final Stream<Node<T>> breadthFirstStreamNodes() {
         return stream(breadthFirstIter());
     }
 
@@ -224,6 +243,23 @@ public class Tree<T> {
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Tree)) {
+            return false;
+        }
+        Tree<?> tree = (Tree<?>) o;
+        return Objects.equals(root, tree.root);
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(root);
+    }
+
 
     /**
      * Represents one node of a tree. A node can either be a leaf or a joint
@@ -231,61 +267,81 @@ public class Tree<T> {
      *
      * @param <T> The type of data maintained by this node and its children.
      */
-    public static class Node<T> {
+    public static final class Node<T> {
 
         private T data;
+        private Node<T> parent;
         private List<Node<T>> children = new LinkedList<>();
 
         public Node(T data) {
             this.data = data;
         }
 
-        public T getData() {
+        public final T getData() {
             return data;
         }
 
-        public List<Node<T>> getChildren() {
-            return children;
+        public final List<Node<T>> getChildren() {
+            return Collections.unmodifiableList(children);
         }
 
-        public Node<T> addChild(T data) {
+        public final Node<T> addChild(T data) {
             Node<T> child = new Node<>(data);
             children.add(child);
+            child.parent = this;
             return child;
         }
 
-        public Node<T> addChildNode(Node<T> child) {
+        public final Node<T> addChildNode(Node<T> child) {
             children.add(child);
+            child.parent = this;
             return child;
         }
 
         @SafeVarargs
         public final void addChildren(T... data) {
-            Arrays.stream(data)
-                  .map((Function<T, Node<T>>) Node::new)
-                  .forEachOrdered(children::add);
+            Arrays.stream(data).map((Function<T, Node<T>>) Node::new)
+                  .map(child -> {
+                      child.parent = this;
+                      return child;
+                  }).forEachOrdered(children::add);
         }
 
+        @SafeVarargs
         public final void addChildrenNodes(Node<T>... data) {
-            Arrays.stream(data).forEachOrdered(children::add);
+            Arrays.stream(data).map(child -> {
+                child.parent = this;
+                return child;
+            }).forEachOrdered(children::add);
         }
 
-        public void addChildren(Collection<T> data) {
-            data.stream()
-                .map((Function<T, Node<T>>) Node::new)
-                .forEachOrdered(children::add);
+        public final void addChildren(Collection<T> data) {
+            data.stream().map((Function<T, Node<T>>) Node::new)
+                .map(child -> {
+                    child.parent = this;
+                    return child;
+                }).forEachOrdered(children::add);
         }
 
-        public void addChildrenNodes(Collection<Node<T>> data) {
-            data.stream().forEachOrdered(children::add);
+        public final void addChildrenNodes(Collection<Node<T>> data) {
+            data.stream().map(child -> {
+                child.parent = this;
+                return child;
+            }).forEachOrdered(children::add);
         }
 
-        public Tree<T> asTree() {
+        public final Tree<T> asTree() {
             return new Tree<>(this);
         }
 
+        private void prune() {
+            if(parent != null) {
+                parent.children.remove(this);
+            }
+        }
+
         @Override
-        public boolean equals(Object o) {
+        public final boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
@@ -298,7 +354,7 @@ public class Tree<T> {
         }
 
         @Override
-        public int hashCode() {
+        public final int hashCode() {
             return Objects.hash(data, children);
         }
 
