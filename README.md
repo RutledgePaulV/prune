@@ -6,7 +6,6 @@
 
 
 ### Usage
-
 ```java
  Tree.Node<Integer> root = new Tree.Node<>(1);
 
