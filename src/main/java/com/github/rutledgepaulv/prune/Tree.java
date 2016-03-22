@@ -3,15 +3,15 @@ package com.github.rutledgepaulv.prune;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.*;
 
-import static java.util.Objects.requireNonNull;
+import static java.util.Objects.*;
 
 /**
  * Simply wraps a node of a tree with some additional methods that act on the
  * tree created by the node in focus and that node's children.
  */
+@SuppressWarnings("WeakerAccess")
 public final class Tree<T> {
 
     private final Node<T> root;
@@ -43,7 +43,7 @@ public final class Tree<T> {
      * @param predicate The predicate to identify nodes that should be removed.
      */
     public final void pruneDescendants(Predicate<T> predicate) {
-        depthFirstStreamNodes().filter(node -> !node.equals(root) && predicate.test(node.getData()))
+        depthFirstStreamNodes().filter(node -> node != root && predicate.test(node.getData()))
                                .forEachOrdered(Node::prune);
     }
 
@@ -55,7 +55,7 @@ public final class Tree<T> {
      * @param predicate The predicate to identify nodes that should be removed.
      */
     public final void pruneDescendantsAsNodes(Predicate<Node<T>> predicate) {
-        depthFirstStreamNodes().filter(node -> !node.equals(root) && predicate.test(node))
+        depthFirstStreamNodes().filter(node -> node != root && predicate.test(node))
                                .forEachOrdered(Node::prune);
     }
 
@@ -116,7 +116,7 @@ public final class Tree<T> {
      * @param visitor The visiting function.
      */
     public final void depthFirstVisit(Function<T, Boolean> visitor) {
-        depthFirstStreamNodes().map(Node::getData).allMatch(visitor::apply);
+        depthFirstStream().allMatch(visitor::apply);
     }
 
     /**
@@ -128,7 +128,7 @@ public final class Tree<T> {
      * @param visitor The visiting function.
      */
     public final void breadthFirstVisit(Function<T, Boolean> visitor) {
-        breadthFirstStreamNodes().map(Node::getData).allMatch(visitor::apply);
+        breadthFirstStream().allMatch(visitor::apply);
     }
 
     /**
@@ -251,15 +251,23 @@ public final class Tree<T> {
         if (!(o instanceof Tree)) {
             return false;
         }
+
         Tree<?> tree = (Tree<?>) o;
-        return Objects.equals(root, tree.root);
+
+        return recursiveTreeNodeEquals(root, tree.root);
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(root);
+        return recursiveTreeNodeHashCode(root);
     }
 
+    @Override
+    public final String toString() {
+        final StringBuilder buffer = new StringBuilder();
+        recursiveTreeNodeToString(this.root, buffer, new LinkedList<>());
+        return buffer.toString();
+    }
 
     /**
      * Represents one node of a tree. A node can either be a leaf or a joint
@@ -334,6 +342,7 @@ public final class Tree<T> {
             return new Tree<>(this);
         }
 
+        // prune yourself from the parent
         private void prune() {
             if(parent != null) {
                 parent.children.remove(this);
@@ -349,15 +358,74 @@ public final class Tree<T> {
                 return false;
             }
             Node<?> treeNode = (Node<?>) o;
-            return Objects.equals(data, treeNode.data) &&
-                    Objects.equals(parent, treeNode.parent) &&
-                    Objects.equals(children, treeNode.children);
+            return Objects.equals(data, treeNode.data);
         }
 
         @Override
         public final int hashCode() {
-            return Objects.hash(data, parent, children);
+            return Objects.hash(data);
         }
 
+        @Override
+        public final String toString() {
+            return Objects.toString(data);
+        }
     }
+
+
+    private static boolean recursiveTreeNodeEquals(Node<?> node1, Node<?> node2) {
+        // check that the root nodes are equal
+        return Objects.equals(node1, node2) &&
+
+                // check that they have the same number of children, short circuiting protects
+                // against a size mismatch on the children in the next step that compares piecewise
+                Objects.equals(node1.children.size(), node2.children.size()) &&
+
+                // verify that each of the children match up
+                IntStream.range(0, node1.children.size()).allMatch(index ->
+
+                        // compare each child node by checking equality of that node as a tree
+                        recursiveTreeNodeEquals(node1.children.get(index), node2.children.get(index)));
+    }
+
+
+    private static int recursiveTreeNodeHashCode(Node<?> node) {
+        return Arrays.hashCode(IntStream.concat(IntStream.of(Objects.hash(node)), node.children.stream()
+                .mapToInt(child -> recursiveTreeNodeHashCode(child))).toArray());
+    }
+
+
+    // adapted from http://www.connorgarvey.com/blog/?p=82#codesyntax_1
+    private static void recursiveTreeNodeToString(Node node, StringBuilder buffer, List<Iterator<Node>> parentIterators) {
+        if (!parentIterators.isEmpty()) {
+            boolean amLast = !parentIterators.get(parentIterators.size() - 1).hasNext();
+            buffer.append("\n");
+            StringBuilder result = new StringBuilder();
+            Iterator<Iterator<Node>> it = parentIterators.iterator();
+            while (it.hasNext()) {
+                Iterator<Node> anIt = it.next();
+                if (anIt.hasNext() || (!it.hasNext() && amLast)) {
+                    result.append("   |");
+                }
+                else {
+                    result.append("    ");
+                }
+            }
+            String lines = result.toString();
+            buffer.append(lines);
+            buffer.append("\n");
+            buffer.append(lines);
+            buffer.append("- ");
+        }
+        buffer.append(Objects.toString(node).replaceAll("[\\n\\r]+", "<newline>"));
+        if (!node.children.isEmpty()) {
+            Iterator<Node> it = node.children.iterator();
+            parentIterators.add(it);
+            while (it.hasNext()) {
+                recursiveTreeNodeToString(it.next(), buffer, parentIterators);
+            }
+            parentIterators.remove(it);
+        }
+    }
+
 }

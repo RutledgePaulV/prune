@@ -4,6 +4,10 @@
 
 ## A zero-nonsense tree library for Java 8
 
+No dependencies. One top-level class. Depth-first and breadth-first node streaming, visiting, and searching.
+Prune off sections of the tree using predicate filters. ToString of a tree returns an ascii representation of the
+tree. Two nodes with the same data are equal. Two trees with the same structure and ordering of nodes with 
+the same data are equal.
 
 ### Usage
 ```java
@@ -29,8 +33,32 @@ assertTrue(firstIntegerGreaterThan4BreadthFirst.isPresent());
 
 assertEquals((Integer) 5, firstIntegerGreaterThan4DepthFirst.get());
 assertEquals((Integer) 6, firstIntegerGreaterThan4BreadthFirst.get());
+
+
+System.out.println(tree);
 ```
 
+```text
+1 -
+    |
+    |- 2
+    |   |
+    |   |- 5
+    |   |
+    |   |- 5
+    |
+    |- 6
+    |   |
+    |   |- 4
+    |   |
+    |   |- 4
+    |
+    |- 2
+        |
+        |- 3
+        |
+        |- 3
+```
 
 ### Install
 ```xml

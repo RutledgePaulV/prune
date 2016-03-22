@@ -452,12 +452,11 @@ public class TreeTest {
 
 
     @Test
-    public void checkEqualsAndHashCodes() {
+    public void checkBasicEqualsAndHashCode() {
         Tree.Node<Integer> root = new Tree.Node<>(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> one = new Tree.Node<>(2);
+        Tree.Node<Integer> two = new Tree.Node<>(2);
 
         assertFalse(root.equals("test"));
         assertFalse(root.asTree().equals("test"));
@@ -466,10 +465,132 @@ public class TreeTest {
 
         assertTrue(tree.equals(tree));
 
-        assertEquals(child1.hashCode(), child3.hashCode());
-        assertEquals(child1.asTree().hashCode(), child3.asTree().hashCode());
+        assertEquals(one.hashCode(), two.hashCode());
+        assertEquals(one.asTree().hashCode(), two.asTree().hashCode());
 
-        assertTrue(child1.equals(child1));
-        assertTrue(child1.asTree().equals(child1.asTree()));
+        assertTrue(one.equals(one));
+        assertTrue(one.asTree().equals(one.asTree()));
     }
+
+    @Test
+    public void checkComplexTreeEqualsAndHashCode() {
+        Tree.Node<Integer> tree1_root = new Tree.Node<>(1);
+        Tree.Node<Integer> tree1_depth1_a = new Tree.Node<>(2);
+        Tree.Node<Integer> tree1_depth1_b = new Tree.Node<>(2);
+        Tree.Node<Integer> tree1_depth2_a_a = new Tree.Node<>(5);
+        Tree.Node<Integer> tree1_depth2_b_a = new Tree.Node<>(6);
+
+        tree1_root.addChildrenNodes(tree1_depth1_a, tree1_depth1_b);
+        tree1_depth1_a.addChildNode(tree1_depth2_a_a);
+        tree1_depth1_b.addChildNode(tree1_depth2_b_a);
+
+        Tree.Node<Integer> tree2_root = new Tree.Node<>(1);
+        Tree.Node<Integer> tree2_depth1_a = new Tree.Node<>(2);
+        Tree.Node<Integer> tree2_depth1_b = new Tree.Node<>(2);
+        Tree.Node<Integer> tree2_depth2_a_a = new Tree.Node<>(5);
+        Tree.Node<Integer> tree2_depth2_b_a = new Tree.Node<>(6);
+
+        tree2_root.addChildrenNodes(tree2_depth1_a, tree2_depth1_b);
+        tree2_depth1_a.addChildNode(tree2_depth2_a_a);
+        tree2_depth1_b.addChildNode(tree2_depth2_b_a);
+
+        assertEquals(tree1_root, tree1_root);
+        assertEquals(tree2_root, tree2_root);
+        assertEquals(tree1_root.hashCode(), tree2_root.hashCode());
+
+        Tree<Integer> tree1 = tree1_root.asTree();
+        Tree<Integer> tree2 = tree2_root.asTree();
+
+        assertEquals(tree1, tree2);
+        assertEquals(tree1.hashCode(), tree2.hashCode());
+
+        tree2_depth2_b_a.addChild(5);
+
+        assertNotEquals(tree1, tree2);
+    }
+
+    @Test
+    public void testNodeToString() {
+        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> child1 = new Tree.Node<>(2);
+        root.addChildNode(child1);
+        assertEquals("1", root.toString());
+    }
+
+
+    @Test
+    public void testTreeToString() {
+        Tree.Node<Integer> root = new Tree.Node<>(1);
+
+        Tree.Node<Integer> child1 = new Tree.Node<>(2);
+        Tree.Node<Integer> child2 = new Tree.Node<>(6);
+        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+
+        root.addChildrenNodes(child1, child2, child3);
+
+        child1.addChildren(5, 5);
+        child2.addChildren(4, 4);
+        child3.addChildren(3, 3);
+
+        Tree<Integer> tree = root.asTree();
+
+        assertEquals("1\n" +
+                "   |\n" +
+                "   |- 2\n" +
+                "   |   |\n" +
+                "   |   |- 5\n" +
+                "   |   |\n" +
+                "   |   |- 5\n" +
+                "   |\n" +
+                "   |- 6\n" +
+                "   |   |\n" +
+                "   |   |- 4\n" +
+                "   |   |\n" +
+                "   |   |- 4\n" +
+                "   |\n" +
+                "   |- 2\n" +
+                "       |\n" +
+                "       |- 3\n" +
+                "       |\n" +
+                "       |- 3", tree.toString());
+    }
+
+
+    @Test
+    public void testTreeToStringWhenToStringOfNodeContainsNewLines() {
+
+        Tree.Node<Object> root = new Tree.Node<>(1);
+        Tree.Node<Object> child1 = new Tree.Node<>(2);
+        Tree.Node<Object> child2 = new Tree.Node<>("testing \n boom");
+        Tree.Node<Object> child3 = new Tree.Node<>(2);
+
+        root.addChildrenNodes(child1, child2, child3);
+
+        child1.addChildren(5, 5);
+        child2.addChildren(4, 4);
+        child3.addChildren(3, 3);
+
+        Tree<Object> tree = root.asTree();
+
+        assertEquals("1\n" +
+                "   |\n" +
+                "   |- 2\n" +
+                "   |   |\n" +
+                "   |   |- 5\n" +
+                "   |   |\n" +
+                "   |   |- 5\n" +
+                "   |\n" +
+                "   |- testing <newline> boom\n" +
+                "   |   |\n" +
+                "   |   |- 4\n" +
+                "   |   |\n" +
+                "   |   |- 4\n" +
+                "   |\n" +
+                "   |- 2\n" +
+                "       |\n" +
+                "       |- 3\n" +
+                "       |\n" +
+                "       |- 3", tree.toString());
+    }
+
 }
