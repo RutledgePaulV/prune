@@ -10,6 +10,21 @@ import static org.junit.Assert.*;
 public class TreeTest {
 
     @Test
+    public void mapAgainstTree() {
+        Tree.Node<String> root = new Tree.Node<>("root");
+        Tree.Node<String> child1 = new Tree.Node<>("one");
+        Tree.Node<String> child2 = new Tree.Node<>("two");
+        Tree.Node<String> child3 = new Tree.Node<>("three");
+        Tree.Node<String> subchild1 = new Tree.Node<>("fourteen");
+        child1.addChildNode(subchild1);
+        root.addChildrenNodes(child1, child2, child3);
+
+        assertEquals("4\n" + "   |\n" + "   |- 3\n" + "   |   |\n" + "   |   |- 8\n" + "   |\n" + "   |- 3\n" +
+                        "   |\n" + "   |- 5",
+                root.asTree().map(String::length).toString());
+    }
+
+    @Test
     public void swapBetweenNodeAndTree() {
 
         Tree.Node<Integer> root = new Tree.Node<>(100);
@@ -27,7 +42,7 @@ public class TreeTest {
 
 
     @Test
-    public void readmeExample () {
+    public void readmeExample() {
         Tree.Node<Integer> root = new Tree.Node<>(1);
 
         Tree.Node<Integer> child1 = new Tree.Node<>(2);
@@ -228,7 +243,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,5,5,6,4,4,2,3,3};
+        final int[] expected = new int[]{1, 2, 5, 5, 6, 4, 4, 2, 3, 3};
 
         tree.depthFirstVisit(val -> {
             assertEquals((Integer) expected[count[0]], val);
@@ -258,7 +273,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,6,2,5,5,4,4,3,3};
+        final int[] expected = new int[]{1, 2, 6, 2, 5, 5, 4, 4, 3, 3};
 
         tree.breadthFirstVisit(val -> {
             assertEquals((Integer) expected[count[0]], val);
@@ -288,7 +303,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,5,5};
+        final int[] expected = new int[]{1, 2, 5, 5};
 
         tree.depthFirstVisit(val -> {
             assertEquals((Integer) expected[count[0]], val);
@@ -318,7 +333,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,6,2,5,5,4,4,3,3};
+        final int[] expected = new int[]{1, 2, 6, 2, 5, 5, 4, 4, 3, 3};
 
         tree.breadthFirstVisit(val -> {
             assertEquals((Integer) expected[count[0]], val);
@@ -328,7 +343,6 @@ public class TreeTest {
 
         assertEquals(expected.length, count[0]);
     }
-
 
 
     @Test
@@ -349,7 +363,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,5,5,6,4,4,2,3,3};
+        final int[] expected = new int[]{1, 2, 5, 5, 6, 4, 4, 2, 3, 3};
 
         tree.depthFirstVisitNodes(val -> {
             assertEquals((Integer) expected[count[0]], val.getData());
@@ -379,7 +393,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,6,2,5,5,4,4,3,3};
+        final int[] expected = new int[]{1, 2, 6, 2, 5, 5, 4, 4, 3, 3};
 
         tree.breadthFirstVisitNodes(val -> {
             assertEquals((Integer) expected[count[0]], val.getData());
@@ -409,7 +423,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,5,5};
+        final int[] expected = new int[]{1, 2, 5, 5};
 
         tree.depthFirstVisitNodes(val -> {
             assertEquals((Integer) expected[count[0]], val.getData());
@@ -439,7 +453,7 @@ public class TreeTest {
         Tree<Integer> tree = root.asTree();
 
         final int[] count = new int[]{0};
-        final int[] expected = new int[]{1,2,6,2,5,5,4,4,3,3};
+        final int[] expected = new int[]{1, 2, 6, 2, 5, 5, 4, 4, 3, 3};
 
         tree.breadthFirstVisitNodes(val -> {
             assertEquals((Integer) expected[count[0]], val.getData());
@@ -534,25 +548,9 @@ public class TreeTest {
 
         Tree<Integer> tree = root.asTree();
 
-        assertEquals("1\n" +
-                "   |\n" +
-                "   |- 2\n" +
-                "   |   |\n" +
-                "   |   |- 5\n" +
-                "   |   |\n" +
-                "   |   |- 5\n" +
-                "   |\n" +
-                "   |- 6\n" +
-                "   |   |\n" +
-                "   |   |- 4\n" +
-                "   |   |\n" +
-                "   |   |- 4\n" +
-                "   |\n" +
-                "   |- 2\n" +
-                "       |\n" +
-                "       |- 3\n" +
-                "       |\n" +
-                "       |- 3", tree.toString());
+        assertEquals("1\n" + "   |\n" + "   |- 2\n" + "   |   |\n" + "   |   |- 5\n" + "   |   |\n" + "   |   |- 5\n" +
+                "   |\n" + "   |- 6\n" + "   |   |\n" + "   |   |- 4\n" + "   |   |\n" + "   |   |- 4\n" + "   |\n" +
+                "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" + "       |- 3", tree.toString());
     }
 
 
@@ -572,24 +570,9 @@ public class TreeTest {
 
         Tree<Object> tree = root.asTree();
 
-        assertEquals("1\n" +
-                "   |\n" +
-                "   |- 2\n" +
-                "   |   |\n" +
-                "   |   |- 5\n" +
-                "   |   |\n" +
-                "   |   |- 5\n" +
-                "   |\n" +
-                "   |- testing <newline> boom\n" +
-                "   |   |\n" +
-                "   |   |- 4\n" +
-                "   |   |\n" +
-                "   |   |- 4\n" +
-                "   |\n" +
-                "   |- 2\n" +
-                "       |\n" +
-                "       |- 3\n" +
-                "       |\n" +
+        assertEquals("1\n" + "   |\n" + "   |- 2\n" + "   |   |\n" + "   |   |- 5\n" + "   |   |\n" + "   |   |- 5\n" +
+                "   |\n" + "   |- testing <newline> boom\n" + "   |   |\n" + "   |   |- 4\n" + "   |   |\n" +
+                "   |   |- 4\n" + "   |\n" + "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" +
                 "       |- 3", tree.toString());
     }
 

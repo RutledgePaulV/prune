@@ -26,6 +26,23 @@ public final class Tree<T> {
     }
 
     /**
+     * Maps a function against every node in the tree starting at the root
+     * and returns the new tree (with equivalent structure) but with each
+     * node's data having been mapped against the function.
+     *
+     * @param function The mapping function that describes how to convert
+     *                 the existing data for a node into the new data for
+     *                 the resulting nodes in the new tree.
+     *
+     * @param <S> The type of the data in the nodes on the new tree.
+     * @return The new tree after having applied the mapping function
+     *         to all nodes in the current tree.
+     */
+    public final <S> Tree<S> map(Function<T, S> function) {
+        return root.map(function).asTree();
+    }
+
+    /**
      * Returns the root node so you can operate on it as a node rather
      * than as a tree.
      *
@@ -43,8 +60,7 @@ public final class Tree<T> {
      * @param predicate The predicate to identify nodes that should be removed.
      */
     public final void pruneDescendants(Predicate<T> predicate) {
-        depthFirstStreamNodes().filter(node -> node != root && predicate.test(node.getData()))
-                               .forEachOrdered(Node::prune);
+        pruneDescendantsAsNodes(node -> predicate.test(node.getData()));
     }
 
     /**
@@ -289,6 +305,18 @@ public final class Tree<T> {
             return data;
         }
 
+        public final Optional<Node<T>> getParent() {
+            return Optional.ofNullable(parent);
+        }
+
+        public final <S> Node<S> map(Function<T, S> function) {
+            Node<S> node = new Node<>(function.apply(this.getData()));
+            getChildren().stream()
+                    .map(child -> child.map(function))
+                    .forEach(node::addChildNode);
+            return node;
+        }
+
         public final List<Node<T>> getChildren() {
             return Collections.unmodifiableList(children);
         }
@@ -391,7 +419,7 @@ public final class Tree<T> {
 
     private static int recursiveTreeNodeHashCode(Node<?> node) {
         return Arrays.hashCode(IntStream.concat(IntStream.of(Objects.hash(node)), node.children.stream()
-                .mapToInt(child -> recursiveTreeNodeHashCode(child))).toArray());
+                .mapToInt(Tree::recursiveTreeNodeHashCode)).toArray());
     }
 
 
