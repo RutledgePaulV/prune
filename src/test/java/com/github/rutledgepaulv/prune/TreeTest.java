@@ -2,21 +2,65 @@ package com.github.rutledgepaulv.prune;
 
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
+import static com.github.rutledgepaulv.prune.Tree.node;
 import static org.junit.Assert.*;
 
 public class TreeTest {
 
     @Test
+    public void maxDepth() {
+        Tree<String> tree = node("root", node("depth1", node("depth2", node("depth3")))).asTree();
+        assertEquals(3, tree.getMaxDepth());
+    }
+
+    @Test
+    public void maxOrder() {
+        Tree<String> tree = node("root", node("depth1", node("depth2", node("depth3"), node("depth3"))),
+                node("depth1", node("depth2", node("depth3"), node("depth3")))).asTree();
+
+        assertEquals(3, tree.getMaxGlobalOrder());
+        assertEquals(1, tree.getMaxLocalOrder());
+    }
+
+    @Test
+    public void ofCollection() {
+
+        List<Data> things = Arrays.asList(new Data(0, -1, "Root"), new Data(1, 0, "Child1"), new Data(2, 0, "Child2"));
+        List<Tree<Data>> trees = Tree.of(things, (p, c) -> (p.getData().id == c.getData().parentId));
+        assertEquals(1, trees.size());
+        assertEquals("(parent: -1, body: Root)\n" + "   |\n" + "   |- (parent: 0, body: Child1)\n" + "   |\n" +
+                "   |- (parent: 0, body: Child2)", trees.get(0).toString());
+    }
+
+    @Test
+    public void ofCollectionWithExplicitRoot() {
+        List<Data> things = Arrays.asList(new Data(1, 0, "Child1"), new Data(2, 0, "Child2"));
+        Tree<Data> tree = Tree.of(node(new Data(0, -1, "Root")), things, (p, c) -> (p.getData().id == c.getData().parentId));
+        assertEquals("(parent: -1, body: Root)\n" + "   |\n" + "   |- (parent: 0, body: Child1)\n" + "   |\n" +
+                "   |- (parent: 0, body: Child2)", tree.toString());
+    }
+
+
+    @Test
+    public void collapsingFilter() {
+
+        Tree<String> tree = node("root", node("child1", node("nestedChild1")), node("child2", node("nestedChild2"))).asTree();
+
+        assertEquals("root\n" + "   |\n" + "   |- nestedChild1\n" + "   |\n" +
+                "   |- nestedChild2", tree.filter(s -> s.contains("child")).toString());
+    }
+
+    @Test
     public void mapAgainstTree() {
-        Tree.Node<String> root = new Tree.Node<>("root");
-        Tree.Node<String> child1 = new Tree.Node<>("one");
-        Tree.Node<String> child2 = new Tree.Node<>("two");
-        Tree.Node<String> child3 = new Tree.Node<>("three");
-        Tree.Node<String> subchild1 = new Tree.Node<>("fourteen");
-        child1.addChildNode(subchild1);
+
+        Tree.Node<String> root = node("root");
+        Tree.Node<String> child1 = node("one");
+        Tree.Node<String> child2 = node("two");
+        Tree.Node<String> child3 = node("three");
+        Tree.Node<String> subchild1 = node("fourteen");
+        child1.addChildrenNodes(subchild1);
         root.addChildrenNodes(child1, child2, child3);
 
         assertEquals("4\n" + "   |\n" + "   |- 3\n" + "   |   |\n" + "   |   |- 8\n" + "   |\n" + "   |- 3\n" +
@@ -27,7 +71,7 @@ public class TreeTest {
     @Test
     public void swapBetweenNodeAndTree() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(100);
+        Tree.Node<Integer> root = node(100);
 
         Tree<Integer> tree = root.asTree();
 
@@ -41,41 +85,15 @@ public class TreeTest {
     }
 
 
-    @Test
-    public void readmeExample() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
-
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
-
-        root.addChildrenNodes(child1, child2, child3);
-
-        child1.addChildren(5, 5);
-        child2.addChildren(4, 4);
-        child3.addChildren(3, 3);
-
-        Tree<Integer> tree = root.asTree();
-
-        Optional<Integer> firstIntegerGreaterThan4DepthFirst = tree.depthFirstSearch(val -> val > 4);
-        Optional<Integer> firstIntegerGreaterThan4BreadthFirst = tree.breadthFirstSearch(val -> val > 4);
-
-        assertTrue(firstIntegerGreaterThan4DepthFirst.isPresent());
-        assertTrue(firstIntegerGreaterThan4BreadthFirst.isPresent());
-
-        assertEquals((Integer) 5, firstIntegerGreaterThan4DepthFirst.get());
-        assertEquals((Integer) 6, firstIntegerGreaterThan4BreadthFirst.get());
-    }
-
 
     @Test
     public void breadthFirst() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(2);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(2);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -101,11 +119,11 @@ public class TreeTest {
     public void depthFirst() {
 
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(2);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(2);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -129,10 +147,10 @@ public class TreeTest {
 
     @Test
     public void depthSearchFindNodeWithMoreThan3Children() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(2);
 
         root.addChildrenNodes(child1, child2);
 
@@ -148,10 +166,10 @@ public class TreeTest {
 
     @Test
     public void breadthFirstFindNodeWithMoreThan3Children() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(2);
 
         root.addChildrenNodes(child1, child2);
 
@@ -168,27 +186,27 @@ public class TreeTest {
     @Test
     public void pruneDirectDescendants() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
         root.addChildren(1, 2, 3, 4);
 
         assertEquals(4, root.getChildren().size());
 
-        root.asTree().pruneDescendants(n -> n < 4);
+        root = root.asTree().prune(n -> n < 4).asNode();
         assertEquals(1, root.getChildren().size());
     }
 
     @Test
     public void pruneDescendantsByNodes() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
-        Tree.Node<Integer> child = new Tree.Node<>(5);
+        Tree.Node<Integer> root = node(1);
+        Tree.Node<Integer> child = node(5);
 
         root.addChildNode(child);
         child.addChildren(4, 3, 5);
         root.addChildren(1, 2, 3, 4);
 
         assertEquals(5, root.getChildren().size());
-        root.asTree().pruneDescendantsAsNodes(node -> node.getChildren().size() == 3);
+        root = root.asTree().pruneAsNodes(node -> node.getChildren().size() == 3).asNode();
 
         assertEquals(4, root.getChildren().size());
         assertFalse(root.asTree().depthFirstStreamNodes().anyMatch(node -> node.equals(child)));
@@ -197,20 +215,21 @@ public class TreeTest {
     @Test
     public void pruneIndirectDescendants() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
-        Tree.Node<Integer> child = new Tree.Node<>(5);
+        Tree.Node<Integer> root = node(1);
+        Tree.Node<Integer> child = node(5);
 
         root.addChildNode(child);
         root.addChildren(4, 3, 5);
         child.addChildren(5, 6);
-        child.addChildrenNodes(new Tree.Node<>(7));
+        child.addChildrenNodes(node(7));
         child.addChild(8);
         child.addChildren(Collections.singletonList(10));
-        child.addChildrenNodes(Collections.singletonList(new Tree.Node<>(9)));
+        child.addChildrenNodes(Collections.singletonList(node(9)));
 
         assertEquals(4, root.getChildren().size());
 
-        root.asTree().pruneDescendants(n -> n == 5);
+        root = root.asTree().prune(n -> n == 5).asNode();
+
         assertEquals(2, root.getChildren().size());
 
         assertFalse(root.asTree().depthFirstStream().anyMatch(val -> val == 5));
@@ -228,11 +247,11 @@ public class TreeTest {
     @Test
     public void depthFirstVisit() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -258,11 +277,11 @@ public class TreeTest {
     @Test
     public void breadthFirstVisit() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -288,11 +307,11 @@ public class TreeTest {
     @Test
     public void depthFirstVisitExitsEarly() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -318,11 +337,11 @@ public class TreeTest {
     @Test
     public void breadthFirstVisitExitsEarly() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -348,11 +367,11 @@ public class TreeTest {
     @Test
     public void depthFirstVisitNodes() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -378,11 +397,11 @@ public class TreeTest {
     @Test
     public void breadthFirstVisitNodes() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -408,11 +427,11 @@ public class TreeTest {
     @Test
     public void depthFirstVisitNodesExitsEarly() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -438,11 +457,11 @@ public class TreeTest {
     @Test
     public void breadthFirstVisitNodesExitsEarly() {
 
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -467,10 +486,10 @@ public class TreeTest {
 
     @Test
     public void checkBasicEqualsAndHashCode() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> one = new Tree.Node<>(2);
-        Tree.Node<Integer> two = new Tree.Node<>(2);
+        Tree.Node<Integer> one = node(2);
+        Tree.Node<Integer> two = node(2);
 
         assertFalse(root.equals("test"));
         assertFalse(root.asTree().equals("test"));
@@ -488,21 +507,21 @@ public class TreeTest {
 
     @Test
     public void checkComplexTreeEqualsAndHashCode() {
-        Tree.Node<Integer> tree1_root = new Tree.Node<>(1);
-        Tree.Node<Integer> tree1_depth1_a = new Tree.Node<>(2);
-        Tree.Node<Integer> tree1_depth1_b = new Tree.Node<>(2);
-        Tree.Node<Integer> tree1_depth2_a_a = new Tree.Node<>(5);
-        Tree.Node<Integer> tree1_depth2_b_a = new Tree.Node<>(6);
+        Tree.Node<Integer> tree1_root = node(1);
+        Tree.Node<Integer> tree1_depth1_a = node(2);
+        Tree.Node<Integer> tree1_depth1_b = node(2);
+        Tree.Node<Integer> tree1_depth2_a_a = node(5);
+        Tree.Node<Integer> tree1_depth2_b_a = node(6);
 
         tree1_root.addChildrenNodes(tree1_depth1_a, tree1_depth1_b);
         tree1_depth1_a.addChildNode(tree1_depth2_a_a);
         tree1_depth1_b.addChildNode(tree1_depth2_b_a);
 
-        Tree.Node<Integer> tree2_root = new Tree.Node<>(1);
-        Tree.Node<Integer> tree2_depth1_a = new Tree.Node<>(2);
-        Tree.Node<Integer> tree2_depth1_b = new Tree.Node<>(2);
-        Tree.Node<Integer> tree2_depth2_a_a = new Tree.Node<>(5);
-        Tree.Node<Integer> tree2_depth2_b_a = new Tree.Node<>(6);
+        Tree.Node<Integer> tree2_root = node(1);
+        Tree.Node<Integer> tree2_depth1_a = node(2);
+        Tree.Node<Integer> tree2_depth1_b = node(2);
+        Tree.Node<Integer> tree2_depth2_a_a = node(5);
+        Tree.Node<Integer> tree2_depth2_b_a = node(6);
 
         tree2_root.addChildrenNodes(tree2_depth1_a, tree2_depth1_b);
         tree2_depth1_a.addChildNode(tree2_depth2_a_a);
@@ -520,13 +539,15 @@ public class TreeTest {
 
         tree2_depth2_b_a.addChild(5);
 
+        tree2 = tree2_root.asTree();
+
         assertNotEquals(tree1, tree2);
     }
 
     @Test
     public void testNodeToString() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
+        Tree.Node<Integer> root = node(1);
+        Tree.Node<Integer> child1 = node(2);
         root.addChildNode(child1);
         assertEquals("1", root.toString());
     }
@@ -534,11 +555,11 @@ public class TreeTest {
 
     @Test
     public void testTreeToString() {
-        Tree.Node<Integer> root = new Tree.Node<>(1);
+        Tree.Node<Integer> root = node(1);
 
-        Tree.Node<Integer> child1 = new Tree.Node<>(2);
-        Tree.Node<Integer> child2 = new Tree.Node<>(6);
-        Tree.Node<Integer> child3 = new Tree.Node<>(2);
+        Tree.Node<Integer> child1 = node(2);
+        Tree.Node<Integer> child2 = node(6);
+        Tree.Node<Integer> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -557,10 +578,10 @@ public class TreeTest {
     @Test
     public void testTreeToStringWhenToStringOfNodeContainsNewLines() {
 
-        Tree.Node<Object> root = new Tree.Node<>(1);
-        Tree.Node<Object> child1 = new Tree.Node<>(2);
-        Tree.Node<Object> child2 = new Tree.Node<>("testing \n boom");
-        Tree.Node<Object> child3 = new Tree.Node<>(2);
+        Tree.Node<Object> root = node(1);
+        Tree.Node<Object> child1 = node(2);
+        Tree.Node<Object> child2 = node("testing \n boom");
+        Tree.Node<Object> child3 = node(2);
 
         root.addChildrenNodes(child1, child2, child3);
 
@@ -572,8 +593,22 @@ public class TreeTest {
 
         assertEquals("1\n" + "   |\n" + "   |- 2\n" + "   |   |\n" + "   |   |- 5\n" + "   |   |\n" + "   |   |- 5\n" +
                 "   |\n" + "   |- testing <newline> boom\n" + "   |   |\n" + "   |   |- 4\n" + "   |   |\n" +
-                "   |   |- 4\n" + "   |\n" + "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" +
-                "       |- 3", tree.toString());
+                "   |   |- 4\n" + "   |\n" + "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" + "       |- 3", tree.toString());
     }
 
+
+    private static class Data {
+        private int id;
+        private int parentId;
+        private String body;
+        private Data(int id, int parent, String b) {
+            this.id = id;
+            this.parentId = parent;
+            this.body = b;
+        }
+        @Override
+        public String toString() {
+            return "(parent: " + parentId + ", body: " + body + ")";
+        }
+    }
 }
