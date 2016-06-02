@@ -23,7 +23,13 @@ child1.addChildren(5, 5);
 child2.addChildren(4, 4);
 child3.addChildren(3, 3);
 
-Tree<Integer> tree = root.asTree();
+Tree<Integer> tree = node(1, 
+                            node(2, 
+                                node(5), node(5)), 
+                            node(6, 
+                                node(4), node(4)), 
+                            node(2, 
+                                node(3), node(3))).asTree();
 
 Optional<Integer> firstIntegerGreaterThan4DepthFirst = tree.depthFirstSearch(val -> val > 4);
 Optional<Integer> firstIntegerGreaterThan4BreadthFirst = tree.breadthFirstSearch(val -> val > 4);
