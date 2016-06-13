@@ -466,6 +466,27 @@ public final class Tree<T> {
     }
 
     /**
+     * Gets all of the unique "strands" from the root of the tree down to the leaves.
+     * This represents all of the forward walks towards the leaves from the root.
+     *
+     * @return The strands
+     */
+    public final Stream<Stream<T>> getStrands() {
+        return getStrandsAsNodes().map(items -> items.map(Node::getData));
+    }
+
+    /**
+     * Gets all of the unique "strands" from the root of the tree down to the leaves.
+     * This represents all of the forward walks towards the leaves from the root.
+     *
+     * @return The strands as the nodes involved in the walks
+     */
+    public final Stream<Stream<Node<T>>> getStrandsAsNodes() {
+        return getLeavesAsNodes().map(node ->
+                Stream.concat(node.getAncestry(), Stream.of(node)));
+    }
+
+    /**
      * Get the maximum depth that occurs in this tree.
      *
      * @return The max depth.
@@ -868,6 +889,11 @@ public final class Tree<T> {
             children.stream().map(child -> child.flatMapAsNode(func))
                     .forEachOrdered(node::addChildNode);
             return node;
+        }
+
+        private Stream<Node<T>> getAncestry() {
+            return getParent().map(parent -> Stream.concat(parent.getAncestry(), Stream.of(parent)))
+                    .orElse(Stream.empty());
         }
 
         @Override

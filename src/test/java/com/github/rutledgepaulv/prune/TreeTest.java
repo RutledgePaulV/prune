@@ -2,7 +2,10 @@ package com.github.rutledgepaulv.prune;
 
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static com.github.rutledgepaulv.prune.Tree.node;
 import static org.junit.Assert.*;
@@ -30,16 +33,22 @@ public class TreeTest {
         List<Data> things = Arrays.asList(new Data(0, -1, "Root"), new Data(1, 0, "Child1"), new Data(2, 0, "Child2"));
         List<Tree<Data>> trees = Tree.of(things, (p, c) -> (p.getData().id == c.getData().parentId));
         assertEquals(1, trees.size());
-        assertEquals("(parent: -1, body: Root)\n" + "   |\n" + "   |- (parent: 0, body: Child1)\n" + "   |\n" +
-                "   |- (parent: 0, body: Child2)", trees.get(0).toString());
+        assertEquals("(parent: -1, body: Root)\n" +
+                     "   |\n" +
+                     "   |- (parent: 0, body: Child1)\n" +
+                     "   |\n" +
+                     "   |- (parent: 0, body: Child2)", trees.get(0).toString());
     }
 
     @Test
     public void ofCollectionWithExplicitRoot() {
         List<Data> things = Arrays.asList(new Data(1, 0, "Child1"), new Data(2, 0, "Child2"));
         Tree<Data> tree = Tree.of(node(new Data(0, -1, "Root")), things, (p, c) -> (p.getData().id == c.getData().parentId));
-        assertEquals("(parent: -1, body: Root)\n" + "   |\n" + "   |- (parent: 0, body: Child1)\n" + "   |\n" +
-                "   |- (parent: 0, body: Child2)", tree.toString());
+        assertEquals("(parent: -1, body: Root)\n" +
+                     "   |\n" +
+                     "   |- (parent: 0, body: Child1)\n" +
+                     "   |\n" +
+                     "   |- (parent: 0, body: Child2)", tree.toString());
     }
 
 
@@ -48,8 +57,11 @@ public class TreeTest {
 
         Tree<String> tree = node("root", node("child1", node("nestedChild1")), node("child2", node("nestedChild2"))).asTree();
 
-        assertEquals("root\n" + "   |\n" + "   |- nestedChild1\n" + "   |\n" +
-                "   |- nestedChild2", tree.filter(s -> s.contains("child")).toString());
+        assertEquals("root\n" +
+                     "   |\n" +
+                     "   |- nestedChild1\n" +
+                     "   |\n" +
+                     "   |- nestedChild2", tree.filter(s -> s.contains("child")).toString());
     }
 
     @Test
@@ -63,8 +75,15 @@ public class TreeTest {
         child1.addChildrenNodes(subchild1);
         root.addChildrenNodes(child1, child2, child3);
 
-        assertEquals("4\n" + "   |\n" + "   |- 3\n" + "   |   |\n" + "   |   |- 8\n" + "   |\n" + "   |- 3\n" +
-                        "   |\n" + "   |- 5",
+        assertEquals("4\n" +
+                        "   |\n" +
+                        "   |- 3\n" +
+                        "   |   |\n" +
+                        "   |   |- 8\n" +
+                        "   |\n" +
+                        "   |- 3\n" +
+                        "   |\n" +
+                        "   |- 5",
                 root.asTree().map(String::length).toString());
     }
 
@@ -569,9 +588,25 @@ public class TreeTest {
 
         Tree<Integer> tree = root.asTree();
 
-        assertEquals("1\n" + "   |\n" + "   |- 2\n" + "   |   |\n" + "   |   |- 5\n" + "   |   |\n" + "   |   |- 5\n" +
-                "   |\n" + "   |- 6\n" + "   |   |\n" + "   |   |- 4\n" + "   |   |\n" + "   |   |- 4\n" + "   |\n" +
-                "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" + "       |- 3", tree.toString());
+        assertEquals("1\n" +
+                    "   |\n" +
+                    "   |- 2\n" +
+                    "   |   |\n" +
+                    "   |   |- 5\n" +
+                    "   |   |\n" +
+                    "   |   |- 5\n" +
+                    "   |\n" + "   " +
+                    "|- 6\n" +
+                    "   |   |\n" +
+                    "   |   |- 4\n" +
+                    "   |   |\n" +
+                    "   |   |- 4\n" +
+                    "   |\n" +
+                    "   |- 2\n" +
+                    "       |\n" +
+                    "       |- 3\n" +
+                    "       |\n" +
+                    "       |- 3", tree.toString());
     }
 
 
@@ -591,9 +626,25 @@ public class TreeTest {
 
         Tree<Object> tree = root.asTree();
 
-        assertEquals("1\n" + "   |\n" + "   |- 2\n" + "   |   |\n" + "   |   |- 5\n" + "   |   |\n" + "   |   |- 5\n" +
-                "   |\n" + "   |- testing <newline> boom\n" + "   |   |\n" + "   |   |- 4\n" + "   |   |\n" +
-                "   |   |- 4\n" + "   |\n" + "   |- 2\n" + "       |\n" + "       |- 3\n" + "       |\n" + "       |- 3", tree.toString());
+        assertEquals("1\n" +
+                    "   |\n" +
+                    "   |- 2\n" +
+                    "   |   |\n" +
+                    "   |   |- 5\n" +
+                    "   |   |\n" +
+                    "   |   |- 5\n" +
+                    "   |\n" +
+                    "   |- testing <newline> boom\n" +
+                    "   |   |\n" +
+                    "   |   |- 4\n" +
+                    "   |   |\n" +
+                    "   |   |- 4\n" +
+                    "   |\n" +
+                    "   |- 2\n" +
+                    "       |\n" +
+                    "       |- 3\n" +
+                    "       |\n" +
+                    "       |- 3", tree.toString());
     }
 
 
