@@ -11,19 +11,13 @@ the same data are equal.
 
 ### Usage
 ```java
-Tree.Node<Integer> root = new Tree.Node<>(1);
-
-Tree.Node<Integer> child1 = new Tree.Node<>(2);
-Tree.Node<Integer> child2 = new Tree.Node<>(6);
-Tree.Node<Integer> child3 = new Tree.Node<>(2);
-
-root.addChildrenNodes(child1, child2, child3);
-
-child1.addChildren(5, 5);
-child2.addChildren(4, 4);
-child3.addChildren(3, 3);
-
-Tree<Integer> tree = root.asTree();
+Tree<Integer> tree = node(1, 
+                            node(2, 
+                                node(5), node(5)), 
+                            node(6, 
+                                node(4), node(4)), 
+                            node(2, 
+                                node(3), node(3))).asTree();
 
 Optional<Integer> firstIntegerGreaterThan4DepthFirst = tree.depthFirstSearch(val -> val > 4);
 Optional<Integer> firstIntegerGreaterThan4BreadthFirst = tree.breadthFirstSearch(val -> val > 4);
@@ -67,7 +61,7 @@ System.out.println(tree);
     <dependency>
         <groupId>com.github.rutledgepaulv</groupId>
         <artifactId>prune</artifactId>
-        <version>1.1</version>
+        <version>1.3</version>
     </dependency>
             
 </dependencies>
