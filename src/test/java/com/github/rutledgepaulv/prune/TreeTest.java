@@ -13,6 +13,21 @@ import static org.junit.Assert.*;
 public class TreeTest {
 
     @Test
+    public void testCardinality() {
+        Tree<String> tree = node("root", node("depth1", node("depth2", node("depth3")))).asTree();
+        assertEquals(4, tree.cardinality());
+    }
+
+    @Test
+    public void testDegree() {
+        Tree<String> tree = node("root", node("depth1", node("depth2", node("depth3")))).asTree();
+        assertEquals(1, tree.asNode().getDegree());
+
+        tree = node("root", node("depth1"), node("depth2"), node("depth3")).asTree();
+        assertEquals(3, tree.asNode().getDegree());
+    }
+
+    @Test
     public void maxDepth() {
         Tree<String> tree = node("root", node("depth1", node("depth2", node("depth3")))).asTree();
         assertEquals(3, tree.getMaxDepth());

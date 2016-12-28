@@ -142,6 +142,15 @@ public final class Tree<T> {
     }
 
     /**
+     * Returns the count of all nodes in the tree.
+     *
+     * @return The cardinality of the tree.
+     */
+    public final long cardinality() {
+        return depthFirstStream().count();
+    }
+
+    /**
      * Copies the tree by mapping each node's data into
      * a new node containing exactly the same data and
      * new nodes wrapping the corresponding children
@@ -815,6 +824,15 @@ public final class Tree<T> {
          */
         public final int getDepth() {
             return getParent().map(parent -> parent.getDepth() + 1).orElse(0);
+        }
+
+        /**
+         * Gets the degree of this node (the number of outbound edges).
+         *
+         * @return The number of outbound edges (eq to the number of children).
+         */
+        public final int getDegree() {
+            return getChildren().size();
         }
 
         /**
